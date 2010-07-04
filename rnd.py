@@ -1,10 +1,15 @@
+#-*- coding: utf-8 -*-
+
 class Rand(object):
+    """
+    Classe base dos geradores de numeros aleatorios
+    """
     def __init__(self, seed=None):
         if seed is None:
             import time
-            self._seed = long(time.time())
+            self.seed = long(time.time())
         else: 
-            self._seed = seed
+            self.seed = seed
 
     def random(self):
         pass
@@ -12,31 +17,32 @@ class Rand(object):
 class LinearCongruential(Rand):
     """
     Linear Congruential Generator
-    A minimal implementation of a deterministic sequencial random number generator(RNG)
-    Derives from the following recurrence relation:
+    Uma implementacao simples de um gerador sequencial de numeros pseudo-aleatorios
+    Deriva da equacao de recorrencia
         Ij+1 = a*Ij + c % m
-    where:
-        a is a positive integer called the multiplier
-        c is a positive integer called the increment
-        m is the modulus
-        I is the seed
+    onde:
+        a é um inteiro positivo chamado multiplicador
+        c é um inteiro positivo chamado incremento
+        m é o modulo
+        I é o seed
     http://www.fizyka.umk.pl/nrbook/bookcpdf.html
     """
+
     def __init__(self, seed=None, a=1664525, m=2**32, c=1013904223):
         """
         Parametros iniciais propostos por Knuth
         """
         super(LinearCongruential,self).__init__(seed)
-        self._a = a
-        self._m = m
-        self._c = c
+        self.a = a
+        self.m = m
+        self.c = c
 
     def seed(self,seed):
-        self._seed = seed
+        self.seed = seed
 
     def next(self):
-        self._seed = ((self._seed * self._a) + self._c) % self._m
-        num = self._seed * (1.0/self._m)#convertendo pra real 0 < I < 1
+        self.seed = ((self.seed * self.a) + self.c) % self.m
+        num = self.seed * (1.0/self.m)#convertendo pra real 0 < I < 1
         return num 
 
     def random(self):
@@ -44,20 +50,23 @@ class LinearCongruential(Rand):
 
 class ParkMiller(LinearCongruential):
     """
-    Pode ser tratado como um caso especial do Linear Congruential
+    Um caso especial do Linear Congruential
     http://en.wikipedia.org/wiki/Park%E2%80%93Miller_RNG
     """
     def __init__(self, seed=None, a=16807, m=(2**31)-1):
         super(ParkMiller,self).__init__(seed)
-        self._a = a
-        self._m = m
-        self._c = 0
+        self.a = a
+        self.m = m
+        self.c = 0
 
 class MersenneTwister(Rand):
     """
+    Gerador bem popular
     Traducao C -> python
     http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/VERSIONS/C-LANG/991029/mt19937-1.c
     """
+
+    #Numeros magicos... nao mude
     N = 624
     M = 397
 
@@ -81,11 +90,18 @@ class MersenneTwister(Rand):
         return y >> 18
     
 
-    def __init__(self):
+    def __init__(self, seed=None): 
+        super(MersenneTwister, self).__init__(seed)
         self.mt = []
         self.mti = self.N + 1
     
-    def sgenrand(self,seed):
+    def sgenrand(self, seed=None):
+        """
+        Inicializa o gerador
+        """
+        if seed is not None:
+            self.seed = seed
+
         self.mt = [0]*self.N
         for i in xrange(self.N):
             self.mt[i] = seed & 0xffff0000
@@ -121,20 +137,21 @@ class MersenneTwister(Rand):
 
 if __name__ == '__main__':
     rand = LinearCongruential()
-    print "========"
+    
+    print "="*20
     for j in xrange(1000):
         print rand.random(),
         if (j%8) == 7:
             print
     
-    print "========"
+    print "="*20
     rand = ParkMiller()
     for j in xrange(1000):
         print rand.random(),
         if (j%8) == 7:
             print
 
-    print "========"
+    print "="*20
     rand = MersenneTwister()
     for j in xrange(1000):
         print rand.random(),
